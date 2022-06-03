@@ -94,6 +94,7 @@ class PluginConfigItems(BaseModel):
     create_time = models.DateTimeField(auto_now_add=True, help_text="创建时间")
     attr_info = models.CharField(max_length=32, null=True, blank=True, help_text="配置项说明")
     protocol = models.CharField(max_length=32, null=True, blank=True, default="", help_text="协议")
+    config_name = models.CharField(max_length=32, null=True, help_text="测试")
 
 
 class TenantServicePluginRelation(BaseModel):

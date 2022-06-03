@@ -55,6 +55,11 @@ class PluginConfigItemsRepository(object):
         return PluginConfigItems.objects.filter(
             plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type)
 
+    def test(self, plugin_id, build_version, service_meta_type, config_name):
+        return PluginConfigItems.objects.filter(
+            plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type,
+            config_name=config_name)
+
     def delete_config_items(self, plugin_id, build_version, service_meta_type):
         PluginConfigItems.objects.filter(
             plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type).delete()

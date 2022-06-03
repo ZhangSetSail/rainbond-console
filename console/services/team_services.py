@@ -70,9 +70,11 @@ class TeamService(object):
         enterprise = enterprise_services.get_enterprise_by_enterprise_id(enterprise_id=tenant.enterprise_id)
         if exist_team_user:
             raise ServiceHandleException(msg="user exist", msg_show="用户已经加入此团队")
-        PermRelTenant.objects.create(tenant_id=tenant.ID, user_id=user.user_id, identity="", enterprise_id=enterprise.ID)
+        PermRelTenant.objects.create(tenant_id=tenant.ID, user_id=user.user_id, identity="",
+                                     enterprise_id=enterprise.ID)
         if role_ids:
-            user_kind_role_service.update_user_roles(kind="team", kind_id=tenant.tenant_id, user=user, role_ids=role_ids)
+            user_kind_role_service.update_user_roles(kind="team", kind_id=tenant.tenant_id, user=user,
+                                                     role_ids=role_ids)
 
     def get_team_users(self, team, name=None):
         users = team_repo.get_tenant_users_by_tenant_ID(team.ID)
@@ -158,7 +160,8 @@ class TeamService(object):
         if not allow_owner:
             filter &= ~Q(role_name="owner")
         default_role_id_list = TenantUserRole.objects.filter(filter).values_list("pk", flat=True)
-        team_role_id_list = TenantUserRole.objects.filter(tenant_id=team_obj.pk, is_default=False).values_list("pk", flat=True)
+        team_role_id_list = TenantUserRole.objects.filter(tenant_id=team_obj.pk, is_default=False).values_list("pk",
+                                                                                                               flat=True)
         return list(default_role_id_list) + list(team_role_id_list)
 
     # todo 废弃
@@ -181,9 +184,11 @@ class TeamService(object):
         if enterprise:
             for user_id in user_ids:
                 # for role_id in role_ids:
-                PermRelTenant.objects.update_or_create(user_id=user_id, tenant_id=tenant.pk, enterprise_id=enterprise.pk)
+                PermRelTenant.objects.update_or_create(user_id=user_id, tenant_id=tenant.pk,
+                                                       enterprise_id=enterprise.pk)
                 user = user_repo.get_by_user_id(user_id)
-                user_kind_role_service.update_user_roles(kind="team", kind_id=tenant.tenant_id, user=user, role_ids=role_ids)
+                user_kind_role_service.update_user_roles(kind="team", kind_id=tenant.tenant_id, user=user,
+                                                         role_ids=role_ids)
 
     def user_is_exist_in_team(self, user_list, tenant_name):
         """判断一个用户是否存在于一个团队中"""
@@ -224,7 +229,8 @@ class TeamService(object):
         tenant_regions = region_repo.get_tenant_regions_by_teamid(tenant.tenant_id)
         for region in tenant_regions:
             try:
-                region_services.delete_tenant_on_region(tenant.enterprise_id, tenant.tenant_name, region.region_name, user)
+                region_services.delete_tenant_on_region(tenant.enterprise_id, tenant.tenant_name, region.region_name,
+                                                        user)
             except ServiceHandleException as e:
                 raise e
             except Exception as e:
@@ -299,7 +305,8 @@ class TeamService(object):
         # init default roles
         role_kind_services.init_default_roles(kind="team", kind_id=team.tenant_id)
         admin_role = role_kind_services.get_role_by_name(kind="team", kind_id=team.tenant_id, name="管理员")
-        user_kind_role_service.update_user_roles(kind="team", kind_id=team.tenant_id, user=user, role_ids=[admin_role.ID])
+        user_kind_role_service.update_user_roles(kind="team", kind_id=team.tenant_id, user=user,
+                                                 role_ids=[admin_role.ID])
         return team
 
     def delete_team_region(self, team_id, region_name):
@@ -376,7 +383,8 @@ class TeamService(object):
         }
 
         if request_user:
-            user_role_list = user_kind_role_service.get_user_roles(kind="team", kind_id=tenant.tenant_id, user=request_user)
+            user_role_list = user_kind_role_service.get_user_roles(kind="team", kind_id=tenant.tenant_id,
+                                                                   user=request_user)
             roles = [x["role_name"] for x in user_role_list["roles"]]
             if tenant.creater == request_user.user_id:
                 roles.append("owner")
@@ -505,6 +513,7 @@ class TeamService(object):
                         "memory_request": tenant["memory_request"],
                         "cpu_request": tenant["cpu_request"],
                         "memory_limit": tenant["memory_limit"],
+                        "running_applications": tenant["running_applications"],
                         "cpu_limit": tenant["cpu_limit"],
                         "running_app_num": tenant["running_app_num"],
                         "running_app_internal_num": tenant["running_app_internal_num"],

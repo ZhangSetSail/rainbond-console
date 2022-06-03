@@ -14,7 +14,10 @@ class PluginConfigService(object):
         config_group = []
         for conf in config_groups:
             config_dict = model_to_dict(conf)
-            items = config_item_repo.get_config_items_by_unique_key(conf.plugin_id, conf.build_version, conf.service_meta_type)
+            # items = config_item_repo.get_config_items_by_unique_key(conf.plugin_id, conf.build_version,
+            #                                                         conf.service_meta_type)
+            # print(conf.plugin_id, conf.build_version, conf.service_meta_type, conf.config_name)
+            items = config_item_repo.test(conf.plugin_id, conf.build_version, conf.service_meta_type, conf.config_name)
             options = [model_to_dict(item) for item in items]
             config_dict["options"] = options
             config_group.append(config_dict)
@@ -28,7 +31,7 @@ class PluginConfigService(object):
             if service_meta_type == PluginMetaType.UPSTREAM_PORT or service_meta_type == PluginMetaType.DOWNSTREAM_PORT:
                 return False, "基于上游端口或下游端口的配置只能使用主动发现"
         for config_group in config_groups:
-            if config_group.service_meta_type == service_meta_type:
+            if config_group.service_meta_type == service_meta_type and injection != "plugin_storage":
                 return False, "配置组配置类型不能重复"
         return True, "检测成功"
 
@@ -48,7 +51,7 @@ class PluginConfigService(object):
     def delet_config_items(self, plugin_id, build_version, service_meta_type):
         config_item_repo.delete_config_items(plugin_id, build_version, service_meta_type)
 
-    def create_config_items(self, plugin_id, build_version, service_meta_type, *options):
+    def create_config_items(self, plugin_id, build_version, service_meta_type, *options, config_name):
         config_items_list = []
         for option in options:
             config_item = PluginConfigItems(
@@ -60,6 +63,7 @@ class PluginConfigService(object):
                 attr_type=option.get("attr_type", "string"),
                 attr_default_value=option.get("attr_default_value", None),
                 is_change=option.get("is_change", False),
+                config_name=config_name,
                 attr_info=option.get("attr_info", ""),
                 protocol=option.get("protocol", ""))
             config_items_list.append(config_item)
@@ -91,6 +95,7 @@ class PluginConfigService(object):
                         attr_default_value=option.get("attr_default_value", None),
                         is_change=option.get("is_change", False),
                         attr_info=option.get("attr_info", ""),
+                        config_name=config["config_name"],
                         protocol=option.get("protocol", ""))
                     config_items_list.append(config_item)
 

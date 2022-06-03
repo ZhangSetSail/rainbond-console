@@ -83,7 +83,8 @@ class ConfigPluginManageView(PluginBaseView):
         config_group_pk = config.get("ID")
 
         config_groups = plugin_config_service.get_config_group(self.plugin_version.plugin_id,
-                                                               self.plugin_version.build_version).exclude(pk=config_group_pk)
+                                                               self.plugin_version.build_version).exclude(
+            pk=config_group_pk)
         is_pass, msg = plugin_config_service.check_group_config(service_meta_type, injection, config_groups)
 
         if not is_pass:
@@ -97,7 +98,7 @@ class ConfigPluginManageView(PluginBaseView):
                                                  old_meta_type)
         options = config.get("options")
         plugin_config_service.create_config_items(self.plugin_version.plugin_id, self.plugin_version.build_version,
-                                                  service_meta_type, *options)
+                                                  service_meta_type, *options, config_name)
 
         result = general_message(200, "success", "修改成功")
         return Response(result, status=result["code"])
@@ -133,9 +134,9 @@ class ConfigPluginManageView(PluginBaseView):
 
         injection = config.get("injection")
         service_meta_type = config.get("service_meta_type")
-        config_groups = plugin_config_service.get_config_group(self.plugin_version.plugin_id, self.plugin_version.build_version)
+        config_groups = plugin_config_service.get_config_group(self.plugin_version.plugin_id,
+                                                               self.plugin_version.build_version)
         is_pass, msg = plugin_config_service.check_group_config(service_meta_type, injection, config_groups)
-
         if not is_pass:
             return Response(general_message(400, "param error", msg), status=400)
         create_data = [config]
@@ -217,7 +218,8 @@ class ConfigPreviewView(PluginBaseView):
         wp_id = "wp_service_id"
         mysql_id = "mysql_service_id"
 
-        config_groups = plugin_config_service.get_config_group(self.plugin_version.plugin_id, self.plugin_version.build_version)
+        config_groups = plugin_config_service.get_config_group(self.plugin_version.plugin_id,
+                                                               self.plugin_version.build_version)
         all_config_group = []
         base_ports = []
         base_services = []
@@ -254,7 +256,8 @@ class ConfigPreviewView(PluginBaseView):
             if config_group.service_meta_type == PluginMetaType.UNDEFINE:
                 base_normal["options"] = items
 
-        bean = {"base_ports": base_ports, "base_services": base_services, "base_normal": base_normal.get("options", None)}
+        bean = {"base_ports": base_ports, "base_services": base_services,
+                "base_normal": base_normal.get("options", None)}
 
         result = general_message(200, "success", "查询成功", bean=bean, list=all_config_group)
         return Response(result, status=result["code"])
