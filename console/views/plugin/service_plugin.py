@@ -171,7 +171,8 @@ class ServicePluginOperationView(AppBaseView):
         if cpu is not None:
             data["plugin_cpu"] = int(cpu)
         # 更新数据中心数据参数
-        region_api.update_plugin_service_relation(self.response_region, self.tenant.tenant_name, self.service.service_alias,
+        region_api.update_plugin_service_relation(self.response_region, self.tenant.tenant_name,
+                                                  self.service.service_alias,
                                                   data)
         # 更新本地数据
         app_plugin_service.start_stop_service_plugin(self.service.service_id, plugin_id, is_active, cpu, memory)

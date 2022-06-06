@@ -323,7 +323,7 @@ class PluginVersionInfoView(PluginBaseView):
             plugin_version_service.delete_build_version_by_id_and_version(self.tenant.tenant_id, self.plugin_version.plugin_id,
                                                                           self.plugin_version.build_version)
 
-            plugin_config_service.delete_plugin_version_config(self.plugin_version.plugin_id, self.plugin_version.build_version)
+            plugin_config_service.delete_plugin_version_config(self.plugin_version.plugin_id, self.plugin_version.build_version,)
             result = general_message(200, "success", "删除成功")
 
         except Exception as e:

@@ -218,10 +218,11 @@ class AppPluginService(object):
         """console层保存默认的数据"""
         config_groups = plugin_config_service.get_config_group(plugin_id, build_version)
         service_plugin_var = []
+        check = False
         for config_group in config_groups:
-            items = config_item_repo.test(plugin_id, build_version, config_group.service_meta_type,
-                                          config_group.config_name)
-            if config_group.service_meta_type == PluginMetaType.UNDEFINE:
+            items = config_item_repo.get_config_items(plugin_id, build_version, config_group.service_meta_type)
+            if config_group.service_meta_type == PluginMetaType.UNDEFINE and not check:
+                check = True
                 attrs_map = {item.attr_name: item.attr_default_value for item in items}
                 service_plugin_var.append(
                     ServicePluginConfigVar(
@@ -403,7 +404,8 @@ class AppPluginService(object):
         downstream_env_list = []
 
         for config_group in config_groups:
-            items = plugin_config_service.get_config_items(plugin_id, build_version, config_group.service_meta_type)
+            items = plugin_config_service.get_config_items(plugin_id, build_version, config_group.service_meta_type,
+                                                           config_group.config_name)
             if config_group.service_meta_type == PluginMetaType.UNDEFINE:
                 options = []
                 normal_envs = service_plugin_vars.filter(service_meta_type=PluginMetaType.UNDEFINE)

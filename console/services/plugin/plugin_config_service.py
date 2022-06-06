@@ -17,7 +17,8 @@ class PluginConfigService(object):
             # items = config_item_repo.get_config_items_by_unique_key(conf.plugin_id, conf.build_version,
             #                                                         conf.service_meta_type)
             # print(conf.plugin_id, conf.build_version, conf.service_meta_type, conf.config_name)
-            items = config_item_repo.test(conf.plugin_id, conf.build_version, conf.service_meta_type, conf.config_name)
+            items = config_item_repo.get_config_items_by_unique_key(conf.plugin_id, conf.build_version,
+                                                                    conf.service_meta_type, conf.config_name)
             options = [model_to_dict(item) for item in items]
             config_dict["options"] = options
             config_group.append(config_dict)
@@ -48,8 +49,8 @@ class PluginConfigService(object):
         pcg.save()
         return 404, pcg
 
-    def delet_config_items(self, plugin_id, build_version, service_meta_type):
-        config_item_repo.delete_config_items(plugin_id, build_version, service_meta_type)
+    def delet_config_items(self, plugin_id, build_version, service_meta_type, config_name):
+        config_item_repo.delete_config_items(plugin_id, build_version, service_meta_type, config_name)
 
     def create_config_items(self, plugin_id, build_version, service_meta_type, *options, config_name):
         config_items_list = []
@@ -102,12 +103,12 @@ class PluginConfigService(object):
         config_group_repo.bulk_create_plugin_config_group(plugin_config_meta_list)
         config_item_repo.bulk_create_items(config_items_list)
 
-    def delete_config_group_by_meta_type(self, plugin_id, build_version, service_meta_type):
-        config_group_repo.delete_config_group_by_meta_type(plugin_id, build_version, service_meta_type)
-        config_item_repo.delete_config_items(plugin_id, build_version, service_meta_type)
+    def delete_config_group_by_meta_type(self, plugin_id, build_version, service_meta_type, config_name):
+        config_group_repo.delete_config_group_by_meta_type(plugin_id, build_version, service_meta_type, config_name)
+        config_item_repo.delete_config_items(plugin_id, build_version, service_meta_type, config_name)
 
-    def get_config_items(self, plugin_id, build_version, service_meta_type):
-        return config_item_repo.get_config_items_by_unique_key(plugin_id, build_version, service_meta_type)
+    def get_config_items(self, plugin_id, build_version, service_meta_type, config_name):
+        return config_item_repo.get_config_items_by_unique_key(plugin_id, build_version, service_meta_type, config_name)
 
     def delete_plugin_version_config(self, plugin_id, build_version):
         """删除插件某个版本的配置"""
@@ -126,7 +127,7 @@ class PluginConfigService(object):
         config_group_repo.bulk_create_plugin_config_group(config_group_copy)
 
     def copy_group_items(self, plugin_id, old_version, new_version):
-        config_items = config_item_repo.get_config_items_by_id_and_version(plugin_id, old_version)
+        config_items = config_item_repo.get_config_items_by_id_and_version(plugin_id, old_version, config_name)
         config_items_copy = []
         for item in config_items:
             item_dict = model_to_dict(item)

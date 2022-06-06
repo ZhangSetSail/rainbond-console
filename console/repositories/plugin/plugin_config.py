@@ -22,9 +22,10 @@ class PluginConfigGroupRepository(object):
         """批量创建插件配置组信息"""
         PluginConfigGroup.objects.bulk_create(plugin_config_meta_list)
 
-    def delete_config_group_by_meta_type(self, plugin_id, build_version, service_meta_type):
+    def delete_config_group_by_meta_type(self, plugin_id, build_version, service_meta_type, config_name):
         PluginConfigGroup.objects.filter(
-            plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type).delete()
+            plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type,
+            config_name=config_name).delete()
 
     def delete_config_group_by_id_and_version(self, plugin_id, build_version):
         PluginConfigGroup.objects.filter(plugin_id=plugin_id, build_version=build_version).delete()
@@ -51,18 +52,19 @@ class PluginConfigGroupRepository(object):
 
 
 class PluginConfigItemsRepository(object):
-    def get_config_items_by_unique_key(self, plugin_id, build_version, service_meta_type):
-        return PluginConfigItems.objects.filter(
-            plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type)
-
-    def test(self, plugin_id, build_version, service_meta_type, config_name):
+    def get_config_items_by_unique_key(self, plugin_id, build_version, service_meta_type, config_name):
         return PluginConfigItems.objects.filter(
             plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type,
             config_name=config_name)
 
-    def delete_config_items(self, plugin_id, build_version, service_meta_type):
+    def get_config_items(self, plugin_id, build_version, service_meta_type):
+        return PluginConfigItems.objects.filter(
+            plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type)
+
+    def delete_config_items(self, plugin_id, build_version, service_meta_type, config_name):
         PluginConfigItems.objects.filter(
-            plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type).delete()
+            plugin_id=plugin_id, build_version=build_version, service_meta_type=service_meta_type,
+            config_name=config_name).delete()
 
     def bulk_create_items(self, config_items_list):
         PluginConfigItems.objects.bulk_create(config_items_list)

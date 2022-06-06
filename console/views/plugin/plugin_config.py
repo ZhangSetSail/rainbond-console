@@ -95,10 +95,10 @@ class ConfigPluginManageView(PluginBaseView):
 
         # 删除原有配置项
         plugin_config_service.delet_config_items(self.plugin_version.plugin_id, self.plugin_version.build_version,
-                                                 old_meta_type)
+                                                 old_meta_type, config_name)
         options = config.get("options")
         plugin_config_service.create_config_items(self.plugin_version.plugin_id, self.plugin_version.build_version,
-                                                  service_meta_type, *options, config_name)
+                                                  service_meta_type, *options, config_name=config_name)
 
         result = general_message(200, "success", "修改成功")
         return Response(result, status=result["code"])
@@ -182,7 +182,7 @@ class ConfigPluginManageView(PluginBaseView):
         if not config_group:
             return Response(general_message(404, "config group not exist", "配置组不存在"), status=404)
         plugin_config_service.delete_config_group_by_meta_type(config_group.plugin_id, config_group.build_version,
-                                                               config_group.service_meta_type)
+                                                               config_group.service_meta_type, config_group.config_name)
 
         result = general_message(200, "success", "删除成功")
         return Response(result, status=result["code"])
@@ -226,7 +226,8 @@ class ConfigPreviewView(PluginBaseView):
         base_normal = {}
         for config_group in config_groups:
             config_items = plugin_config_service.get_config_items(
-                self.plugin_version.plugin_id, self.plugin_version.build_version, config_group.service_meta_type)
+                self.plugin_version.plugin_id, self.plugin_version.build_version, config_group.service_meta_type,
+                config_group.config_name)
             items = []
             for item in config_items:
                 item_map = {}
