@@ -426,14 +426,17 @@ class AppPluginService(object):
                     if undefine_options:
                         item_option["attr_value"] = undefine_options.get(item.attr_name, item.attr_default_value)
                     options.append(item_option)
-                undefine_env.update({
-                    "service_id": service.service_id,
-                    "service_meta_type": config_group.service_meta_type,
-                    "injection": config_group.injection,
-                    "service_alias": service.service_alias,
-                    "config": copy.deepcopy(options),
-                    "config_group_name": config_group.config_name,
-                })
+                if undefine_env:
+                    undefine_env["config"].append(copy.deepcopy(options)[0])
+                else:
+                    undefine_env.update({
+                        "service_id": service.service_id,
+                        "service_meta_type": config_group.service_meta_type,
+                        "injection": config_group.injection,
+                        "service_alias": service.service_alias,
+                        "config": copy.deepcopy(options),
+                        "config_group_name": config_group.config_name,
+                    })
             if config_group.service_meta_type == PluginMetaType.UPSTREAM_PORT:
                 ports = port_repo.get_service_ports(service.tenant_id, service.service_id)
                 for port in ports:
