@@ -175,6 +175,7 @@ class ConfigPluginManageView(PluginBaseView):
               paramType: form
         """
         config_group_id = request.data.get("config_group_id")
+        config_name = request.data.get("config_name")
         if not config_group_id:
             return Response(general_message(400, "param error", "参数错误"), status=400)
 
@@ -182,7 +183,7 @@ class ConfigPluginManageView(PluginBaseView):
         if not config_group:
             return Response(general_message(404, "config group not exist", "配置组不存在"), status=404)
         plugin_config_service.delete_config_group_by_meta_type(config_group.plugin_id, config_group.build_version,
-                                                               config_group.service_meta_type, config_group.config_name)
+                                                               config_group.service_meta_type, config_name)
 
         result = general_message(200, "success", "删除成功")
         return Response(result, status=result["code"])
