@@ -136,9 +136,11 @@ function start_rainbond {
         if [ $? != 0 ]; then
             sed -i "s#rainbond/rbd-resource-proxy:v5.6.0-release#nginx:1.19#g" /app/ui/rainbond-operator/config/single_node_cr/rbd-resource-proxy.yml
         fi
-        helm install rainbond-operator /app/chart -n rbd-system --kubeconfig /root/.kube/config \
+        helm template rainbond-operator /app/chart -n rbd-system --kubeconfig /root/.kube/config \
             --set operator.image.name="${IMAGE_DOMAIN}"/"${IMAGE_NAMESPACE}"/rainbond-operator \
-            --set operator.image.tag="${VERSION}"
+            --set operator.image.tag="${VERSION}" \
+            --set operator.image.env[0].name=IS_SQLLITE \
+            --set operator.image.env[0].value=TRUE
         echo -e "${GREEN}$(date "$TIME") INFO: Helm rainbond-operator installed ${NC}"
 
         # setting rainbondcluster
