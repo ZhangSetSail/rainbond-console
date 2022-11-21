@@ -354,18 +354,6 @@ class Tenants(BaseModel):
     def __unicode__(self):
         return self.tenant_name
 
-
-class HelmRepoInfo(BaseModel):
-    class Meta:
-        db_table = "helm_repo"
-
-    repo_id = models.CharField(max_length=33, unique=True, help_text="Helm仓库id")
-    repo_name = models.CharField(max_length=64, unique=True, help_text="仓库名称")
-    repo_url = models.CharField(max_length=128, help_text="仓库地址")
-    username = models.CharField(max_length=128, default="", help_text="仓库用户名")
-    password = models.CharField(max_length=128, default="", help_text="仓库密码")
-
-
 class TenantRegionInfo(BaseModel):
     class Meta:
         db_table = 'tenant_region'

@@ -29,15 +29,4 @@ INSERT INTO rainbond_center_app
 (app_id, app_name, create_user, create_team, pic, "source", dev_status, "scope", "describe", is_ingerit, create_time, update_time, enterprise_id, install_number, is_official, details)
 SELECT app_id, app_name, create_user, create_team, pic, "source", dev_status, "scope", "describe", is_ingerit, create_time, update_time, enterprise_id, install_number, is_official, details
 FROM rainbond_center_app_old;
-
-
-CREATE TABLE "helm_repo" (
-    "ID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "repo_name" varchar(64) NOT NULL UNIQUE,
-    "repo_url" varchar(128) NOT NULL,
-    "username" varchar(128) NOT NULL,
-    "password" varchar(128) NOT NULL,
-    "repo_id" varchar(33) NOT NULL UNIQUE
-);
-
 COMMIT;

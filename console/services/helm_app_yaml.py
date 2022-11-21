@@ -4,7 +4,6 @@ import logging
 import time
 
 from console.models.main import RainbondCenterApp, RainbondCenterAppVersion, AppHelmOverrides
-from console.repositories.helm import helm_repo
 from console.services.app_actions import app_manage_service
 from console.services.region_resource_processing import region_resource
 from www.apiclient.regionapi import RegionInvokeApi
@@ -16,15 +15,7 @@ logger = logging.getLogger('default')
 
 
 class HelmAppService(object):
-    def check_helm_app(self, name, repo_name, chart_name, version, overrides, region, tenant_name, tenant):
-        data = helm_repo.get_helm_repo_by_name(repo_name)
-        if not data:
-            data = dict()
-        data["name"] = name
-        data["chart"] = repo_name + "/" + chart_name
-        data["version"] = version
-        data["overrides"] = overrides
-        data["namespace"] = tenant.namespace
+    def check_helm_app(self, region, tenant_name, data):
         res, body = region_api.check_helm_app(region, tenant_name, data)
         return res, body["bean"]
 
@@ -206,15 +197,7 @@ class HelmAppService(object):
         app_version.region_name = region_name
         app_version.save()
 
-    def yaml_conversion(self, name, repo_name, chart_name, version, overrides, region, tenant_name, tenant, eid, region_id):
-        check_helm_app_data = helm_repo.get_helm_repo_by_name(repo_name)
-        if not check_helm_app_data:
-            check_helm_app_data = dict()
-        check_helm_app_data["name"] = name
-        check_helm_app_data["chart"] = repo_name + "/" + chart_name
-        check_helm_app_data["version"] = version
-        check_helm_app_data["overrides"] = overrides
-        check_helm_app_data["namespace"] = tenant.namespace
+    def yaml_conversion(self, region, tenant_name, check_helm_app_data, region_id, tenant, eid):
         _, check_body = region_api.check_helm_app(region, tenant_name, check_helm_app_data)
         body = self.yaml_handle(eid, region_id, tenant, check_body["bean"]["yaml"])
         return body
@@ -230,16 +213,6 @@ class HelmAppService(object):
         }
         _, body = region_api.yaml_resource_detailed(eid, region_id, yaml_resource_detailed_data)
         return body["bean"]
-
-    def add_helm_repo(self, repo_name, repo_url, username, password):
-        helm_repo_data = {
-            "repo_id": make_uuid(),
-            "repo_name": repo_name,
-            "repo_url": repo_url,
-            "username": username,
-            "password": password
-        }
-        return helm_repo.create_helm_repo(**helm_repo_data)
 
     def get_helm_chart_information(self, region, tenant_name, repo_url, chart_name):
         repo_chart = dict()
@@ -269,7 +242,7 @@ class HelmAppService(object):
             service_ids = region_resource.create_components(app, ac["component"], tenant, region.region_name, user.user_id)
             app_manage_service.batch_action(region.region_name, tenant, user, "deploy", service_ids, None, None)
 
-    def repo_yaml_handle(self, eid, region_id, command, region_name, tenant, data, user_id):
+    def repo_yaml_handle(self, eid, command, region_name, tenant):
         logger.info("begin function repo_yaml_handle")
         cmd_list = command.split()
         repo_name, repo_url, username, password, chart_name, version = "", "", "", "", "", ""
@@ -297,21 +270,7 @@ class HelmAppService(object):
         if not version:
             logger.warning("version is not obtained from the command.use the highest version of {}".format(chart_name))
             version = chart_data[0]["Version"]
-        i = 0
         repo_name = repo_name + "cmd"
-        while True:
-            i = i + 1
-            repo_name = repo_name + str(i)
-            repo = helm_repo.get_helm_repo_by_name(repo_name)
-            if not repo:
-                logger.info("create helm repo {}".format(repo_name))
-                self.add_helm_repo(repo_name, repo_url, username, password)
-                break
-            else:
-                if repo["repo_url"] == repo_url:
-                    logger.info("helm repo {} is exist and url is the same".format(repo_name))
-                    break
-
         return {
             "version": version,
             "repo_name": repo_name,

@@ -76,7 +76,7 @@ from console.views.group import (AppGovernanceModeView, AppKubernetesServiceView
                                  ApplicationInstallView, ApplicationPodView, ApplicationHelmAppComponentView,
                                  ApplicationParseServicesView, ApplicationReleasesView, ApplicationIngressesView,
                                  TenantAppUpgradableNumView, AppGovernanceModeCheckView, ApplicationVolumesView)
-from console.views.helm_app import HelmAppView, HelmRepo, HelmCenterApp, HelmChart, CommandInstallHelm
+from console.views.helm_app import HelmAppView, HelmCenterApp, HelmChart, CommandInstallHelm
 from console.views.jwt_token_view import JWTTokenView
 from console.views.k8s_attribute import ComponentK8sAttributeView, ComponentK8sAttributeListView
 from console.views.k8s_resource import AppK8sResourceListView, AppK8ResourceView
@@ -243,7 +243,6 @@ urlpatterns = [
     url(r'^teams/(?P<team_name>[\w\-]+)/resource-name$', YamlResourceName.as_view()),
     url(r'^teams/(?P<team_name>[\w\-]+)/resource-detailed$', YamlResourceDetailed.as_view()),
     # helm应用处理
-    url(r'^helm/repos$', HelmRepo.as_view()),
     url(r'^teams/(?P<team_name>[\w\-]+)/helm_app$', HelmAppView.as_view()),
     url(r'^teams/(?P<team_name>[\w\-]+)/chart/version$', HelmChart.as_view()),
     url(r'^teams/(?P<team_name>[\w\-]+)/helm_command$', CommandInstallHelm.as_view()),

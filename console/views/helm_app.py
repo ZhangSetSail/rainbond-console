@@ -2,11 +2,9 @@ import json
 
 from rest_framework import status
 
-from console.repositories.helm import helm_repo
 from console.repositories.market_app_repo import rainbond_app_repo
-from console.repositories.share_repo import share_repo
 from console.services.helm_app_yaml import helm_app_service
-from console.views.base import RegionTenantHeaderView, JWTAuthApiView
+from console.views.base import RegionTenantHeaderView
 from www.utils.crypt import make_helm_uuid
 from www.utils.return_message import general_message
 from rest_framework.response import Response
@@ -17,13 +15,20 @@ class HelmAppView(RegionTenantHeaderView):
         """
         检查helm应用
         """
-        name = request.GET.get("name")
-        repo_name = request.GET.get("repo_name")
         chart_name = request.GET.get("chart_name")
-        version = request.GET.get("version")
+        repo_name = request.GET.get("repo_name")
         overrides = []
-        _, data = helm_app_service.check_helm_app(name, repo_name, chart_name, version, overrides, self.region_name,
-                                                  self.tenant_name, self.tenant)
+        data = dict()
+        data["name"] = request.GET.get("name")
+        data["chart"] = repo_name + "/" + chart_name
+        data["version"] = request.GET.get("version")
+        data["overrides"] = overrides
+        data["namespace"] = self.tenant.namespace
+        data["repo_name"] = repo_name
+        data["repo_url"] = request.GET.get("repo_url")
+        data["username"] = request.GET.get("username")
+        data["password"] = request.GET.get("password")
+        _, data = helm_app_service.check_helm_app(self.region_name, self.tenant_name, data)
         result = general_message(200, "success", "获取成功", bean=data)
         return Response(result, status=status.HTTP_200_OK)
 
@@ -39,11 +44,20 @@ class HelmAppView(RegionTenantHeaderView):
         app_model_id = request.data.get("app_model_id")
         app_id = request.data.get("app_id")
         overrides_list = list()
-        for key, value in overrides.items():
-            overrides_list.append(key + "=" + value)
-        cvdata = helm_app_service.yaml_conversion(name, repo_name, chart_name, version, overrides_list, self.region_name,
-                                                  self.tenant_name, self.tenant, self.enterprise.enterprise_id,
-                                                  self.region.region_id)
+
+        check_helm_app_data = dict()
+        check_helm_app_data["name"] = name
+        check_helm_app_data["chart"] = repo_name + "/" + chart_name
+        check_helm_app_data["version"] = version
+        check_helm_app_data["overrides"] = [key + "=" + value for key, value in overrides.items()]
+        check_helm_app_data["namespace"] = self.tenant.namespace
+        check_helm_app_data["repo_name"] = repo_name
+        check_helm_app_data["repo_url"] = request.data.get("repo_url")
+        check_helm_app_data["username"] = request.data.get("username", "")
+        check_helm_app_data["password"] = request.data.get("password", "")
+
+        cvdata = helm_app_service.yaml_conversion(self.region_name, self.tenant_name, check_helm_app_data,
+                                                  self.region.region_id, self.tenant, self.enterprise.enterprise_id)
         helm_center_app = rainbond_app_repo.get_rainbond_app_qs_by_key(self.enterprise.enterprise_id, app_model_id)
         chart = repo_name + "/" + chart_name
         helm_app_service.generate_template(cvdata, helm_center_app, version, self.tenant, chart, self.region_name,
@@ -96,13 +110,8 @@ class HelmChart(RegionTenantHeaderView):
         # highest 默认获取全部版本，传值获取最高版本
         highest = request.GET.get("highest", "")
         app_id = request.GET.get("app_id", "")
-        data = helm_repo.get_helm_repo_by_name(repo_name)
-        if not data:
-            ret = dict()
-            ret["repo_exist"] = False
-            result = general_message(200, "success", "查询成功", bean=ret)
-            return Response(result, status=status.HTTP_200_OK)
-        chart_information = helm_app_service.get_helm_chart_information(self.region_name, self.tenant_name, data["repo_url"],
+        repo_url = request.GET.get("repo_url")
+        chart_information = helm_app_service.get_helm_chart_information(self.region_name, self.tenant_name, repo_url,
                                                                         chart_name)
         app = rainbond_app_repo.get_app_helm_overrides(app_id, make_helm_uuid(repo_name + "/" + chart_name)).last()
         overrides_dict = dict()
@@ -143,49 +152,11 @@ class CommandInstallHelm(RegionTenantHeaderView):
                 ret["information"] = ""
             else:
                 ret["tgz"] = False
-                data = helm_app_service.repo_yaml_handle(self.enterprise.enterprise_id, self.region.region_id, command,
-                                                         self.region_name, self.tenant, command_yaml_data, self.user.user_id)
+                data = helm_app_service.repo_yaml_handle(self.enterprise.enterprise_id, command, self.region_name, self.tenant)
                 ret["information"] = ""
                 if not data:
                     ret["status"] = False
                     ret["information"] = "未从命令中获取到chart名字"
                 ret["chart"] = data
         result = general_message(200, "success", "执行成功", bean=ret)
-        return Response(result, status=status.HTTP_200_OK)
-
-
-class HelmRepo(JWTAuthApiView):
-    def post(self, request, *args, **kwargs):
-        """
-        添加helm仓库
-        """
-        repo_name = request.data.get("repo_name")
-        repo_url = request.data.get("repo_url")
-        username = request.data.get("username", "")
-        password = request.data.get("password", "")
-        if helm_repo.get_helm_repo_by_name(repo_name):
-            result = general_message(200, "success", "添加成功", "")
-            return Response(result, status=status.HTTP_200_OK)
-        helm_app_service.add_helm_repo(repo_name, repo_url, username, password)
-        result = general_message(200, "success", "添加成功", "")
-        return Response(result, status=status.HTTP_200_OK)
-
-    def put(self, request, *args, **kwargs):
-        """
-        更新helm仓库
-        """
-        repo_name = request.data.get("repo_name")
-        repo_url = request.data.get("repo_url")
-        helm_repo.update_helm_repo(repo_name, repo_url)
-        result = general_message(200, "success", "更新成功", "")
-        return Response(result, status=status.HTTP_200_OK)
-
-    def delete(self, request, *args, **kwargs):
-        """
-        删除helm仓库
-        """
-        repo_name = request.data.get("repo_name")
-        share_repo.delete_helm_shared_apps("helm:" + repo_name)
-        helm_repo.delete_helm_repo(repo_name)
-        result = general_message(200, "success", "删除成功", "")
         return Response(result, status=status.HTTP_200_OK)
