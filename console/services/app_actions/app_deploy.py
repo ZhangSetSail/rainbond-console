@@ -598,11 +598,8 @@ class MarketService(object):
         port_alias = self.service.service_alias.upper()
         k8s_service_name = port.get("k8s_service_name", self.service.service_alias + "-" + str(container_port))
         if k8s_service_name:
-            try:
-                port_repo.get_by_k8s_service_name(self.tenant.tenant_id, k8s_service_name)
+            if port_repo.get_by_k8s_service_name(self.tenant.tenant_id, k8s_service_name):
                 k8s_service_name += "-" + make_uuid()[-4:]
-            except TenantServicesPort.DoesNotExist:
-                pass
             port["k8s_service_name"] = k8s_service_name
         port["tenant_id"] = self.tenant.tenant_id
         port["service_id"] = self.service.service_id
