@@ -17,6 +17,19 @@ WORKDIR /go/src/goodrain.com/cloud-adaptor/
 RUN go build -ldflags "$LDFLAGS" -o /cloud-adaptor $PWD/cmd/cloud-adaptor
 
 FROM ${IMAGE_NAMESPACE}/rainbond-ui:${VERSION}
+ADD . /app/ui
+WORKDIR /app/ui
+RUN mkdir -p /app/ui && \
+    mv /dist/index.html /app/ui/www/templates/index.html && \
+    rm -rf /app/ui/www/static/dists && \
+    mkdir -p /app/ui/www/static/dists /app/data /root/.ssh && \
+    cp -a /dist/* /app/ui/www/static/dists/ && \
+    python -m pip install --upgrade pip && \
+    pip install -r requirements.txt $PYTHONPROXY && \
+    python manage.py collectstatic --noinput --ignore weavescope-src --ignore drf-yasg  --ignore rest_framework && \
+    rm -rf /dist /root/.cache /tmp/* /app/ui/www/static/www/weavescope
+
+FROM ubuntu:latest
 ARG RELEASE_DESC=
 ARG ARCH=amd64
 ARG VERSION
@@ -25,10 +38,9 @@ ARG PYTHONPROXY
 
 COPY --from=builder /go/src/goodrain.com/cloud-adaptor/chart /app/chart
 COPY --from=builder /cloud-adaptor /app/cloudadaptor
-ADD . /app/ui
-WORKDIR /app/ui
+COPY --from=ui /app/ui /app/ui
 
-RUN mkdir -p /app/ui /usr/share/zoneinfo/Asia/ /opt/rainbond/ ~/.kube/ /app/logs/ /var/log/supervisor && \
+RUN mkdir -p  /usr/share/zoneinfo/Asia/ /opt/rainbond/ ~/.kube/ /app/logs/ /var/log/supervisor && \
     set -eux; \
     if [ "${ARCH}" = "arm64" ]; then \
         wget -O /usr/local/bin/nerdctl "https://pkg.goodrain.com/pkg/nerdctl/v1.0.0/nerdctl-arm64" && chmod +x /usr/local/bin/nerdctl; \
@@ -45,15 +57,6 @@ RUN mkdir -p /app/ui /usr/share/zoneinfo/Asia/ /opt/rainbond/ ~/.kube/ /app/logs
     mv /app/ui/supervisord.conf /etc/supervisor/supervisord.conf && \
     mv /app/ui/dind.conf /etc/supervisor/conf.d/dind.conf && \
 	chmod +x /app/cloudadaptor
-
-RUN mv /dist/index.html /app/ui/www/templates/index.html && \
-    rm -rf /app/ui/www/static/dists && \
-    mkdir -p /app/ui/www/static/dists /app/data /root/.ssh && \
-    cp -a /dist/* /app/ui/www/static/dists/ && \
-    python -m pip install --upgrade pip && \
-    pip install -r requirements.txt $PYTHONPROXY && \
-    python manage.py collectstatic --noinput --ignore weavescope-src --ignore drf-yasg  --ignore rest_framework && \
-    rm -rf /dist /root/.cache /tmp/* /app/ui/www/static/www/weavescope
 
 ENV PORT 7070
 ENV IS_OPEN_API=true
