@@ -33,3 +33,5 @@ done
 
 
 docker save -o rainbond-"${VERSION}".tar ${image_list} rancher/mirrored-metrics-server:v0.5.0 rancher/mirrored-coredns-coredns:1.8.4
+tar -zcvf rainbond-"${VERSION}".tar.gz rainbond-"${VERSION}".tar
+rm -rf rainbond-"${VERSION}".tar

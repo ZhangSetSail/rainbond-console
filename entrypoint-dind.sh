@@ -99,6 +99,7 @@ function configuration {
   if [ -f "/app/data/k3s/agent/images/rainbond-${VERSION}.tar" ]; then
     echo -e "${GREEN}$(date "$TIME") INFO: File \"/app/data/k3s/agent/images/rainbond-${VERSION}.tar\" already exists. ${NC}"
   else
+    tar -xzvf /app/ui/rainbond-${VERSION}.tar.gz
     if cp /app/ui/rainbond-${VERSION}.tar /app/data/k3s/agent/images/rainbond-${VERSION}.tar; then
       echo -e "${GREEN}$(date "$TIME") INFO: Copy rainbond-${VERSION}.tar file to \"/app/data/k3s/agent/images\" path. ${NC}"
     else
