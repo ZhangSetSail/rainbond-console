@@ -11,6 +11,8 @@ from console.exception.main import ServiceHandleException
 from console.models.main import RegionConfig, ConsoleSysConfig
 from django import http
 from django.conf import settings
+
+from console.repositories.app import service_repo
 from www.apiclient.baseclient import client_auth_service
 from www.apiclient.exception import err_region_not_found
 from www.apiclient.regionapibaseclient import RegionApiBaseHttpClient
@@ -2922,12 +2924,17 @@ class RegionInvokeApi(RegionApiBaseHttpClient):
             r_apps = region_app_repo.list_by_app_ids(region.region_name, app_ids)
             region_app_map = {r_app.region_app_id: r_app.app_id for r_app in r_apps}
             domains = []
+            from console.repositories.group import group_service_relation_repo
+            svc_ids = group_service_relation_repo.list_serivce_ids_by_app_id(tenant_id, region.region_name, app_id)
+            components = service_repo.get_services_by_service_ids(svc_ids)
+            component_dict = {"-"+cpt.service_alias: cpt.service_cname for cpt in components}
             for domain in body.get("list"):
                 name = domain.get("name")
-                name_split = name.split('|', 1)
+                name_split = name.split('|')
                 region_app_id = name_split[0]
                 app_id = region_app_map[region_app_id]
-                domain["name"] = str(app_id)+name_split[1]
+                domain["component_name"] = component_dict.get(name_split[2], "")
+                domain["name"] = str(app_id)+name_split[1]+name_split[2]
                 domains.append(domain)
             body["list"] = domains
         return body
