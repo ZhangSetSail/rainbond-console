@@ -175,9 +175,11 @@ class TeamOverView(RegionTenantHeaderView):
                 try:
                     overview_detail["region_health"] = True
                     overview_detail["memory_usage"] = int(source["memory"])
+                    overview_detail["team_service_memory_count"] = int(source["memory"])
                     overview_detail["team_service_total_disk"] = int(source["disk"])
                     overview_detail["team_service_total_cpu"] = int(source["limit_cpu"])
                     overview_detail["team_service_total_memory"] = int(source["limit_memory"])
+                    overview_detail["team_service_use_cpu"] = int(source["cpu"])
                     overview_detail["cpu_usage"] = int(source["cpu"])
                     overview_detail["running_component_num"] = int(source.get("service_running_num", 0))
                 except Exception as e:
