@@ -62,7 +62,7 @@ class AppVolumeService(object):
         return True
 
     def get_service_support_volume_options(self, tenant, service):
-        base_opts = [{"volume_type": "memoryfs", "name_show": "临时存储"}]
+        base_opts = []
         body = region_api.get_volume_options(service.service_region, tenant.tenant_name)
         if body and hasattr(body, 'list') and body.list:
             for opt in body.list:
