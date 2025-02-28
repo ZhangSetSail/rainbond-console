@@ -555,6 +555,8 @@ class ServiceRelPerms(BaseModel):
 class UserRole(BaseModel):
     class Meta:
         db_table = 'user_role'
+        verbose_name = '用户角色对应关系表'
+        verbose_name_plural = '用户角色对应关系表'
 
     user_id = models.CharField(max_length=32, help_text='用户id')
     role_id = models.CharField(max_length=32, help_text='角色id')
@@ -1189,3 +1191,26 @@ class ComponentK8sAttributes(BaseModel):
     # Define the attribute value, which is stored in the database.
     # The value is stored in the database in the form of `json/yaml/string`.
     attribute_value = models.TextField(help_text="the attribute value")
+
+
+class AuditLog(BaseModel):
+    """审计日志"""
+    class Meta:
+        db_table = 'audit_log'
+        verbose_name = '审计日志'
+        verbose_name_plural = '审计日志'
+
+    user_id = models.IntegerField(help_text="用户ID", verbose_name="用户ID")
+    username = models.CharField(max_length=100, help_text="用户名", verbose_name="用户名")
+    action = models.CharField(max_length=32, help_text="操作类型", verbose_name="操作类型")
+    resource_type = models.CharField(max_length=64, help_text="资源类型", verbose_name="资源类型")
+    resource_id = models.CharField(max_length=64, help_text="资源ID", verbose_name="资源ID")
+    table_name = models.CharField(max_length=100, help_text="表名称", verbose_name="表名称", default="")
+    old_data = models.TextField(null=True, blank=True, help_text="更新前的数据", verbose_name="更新前的数据")
+    new_data = models.TextField(null=True, blank=True, help_text="更新后的数据", verbose_name="更新后的数据")
+    ip_address = models.CharField(max_length=45, help_text="IP地址", verbose_name="IP地址")
+    user_agent = models.CharField(max_length=255, help_text="用户代理", verbose_name="用户代理")
+    created_time = models.DateTimeField(auto_now_add=True, help_text="创建时间", verbose_name="创建时间")
+
+    def __str__(self):
+        return f"{self.username} {self.action} {self.resource_type} at {self.created_time}"

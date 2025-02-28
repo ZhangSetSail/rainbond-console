@@ -209,17 +209,20 @@ if IS_OPEN_API:
             'groups': 'Access to your groups'
         },
     }
-MIDDLEWARE = (
-    'goodrain_web.middleware.ErrorPage',
-    'django.middleware.gzip.GZipMiddleware',
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'console.services.auth.middleware.AuthenticationMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+    'console.services.audit_service.AuditMiddleware',  # 添加审计中间件
+    'goodrain_web.middleware.ErrorPage',
+    'django.middleware.gzip.GZipMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'console.services.auth.middleware.AuthenticationMiddleware',
+]
 
 ROOT_URLCONF = 'goodrain_web.urls'
 

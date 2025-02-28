@@ -4,7 +4,7 @@ from django.conf.urls import url
 
 import console.utils.perms_route_config as perms
 from console.captcha.captcha_code import CaptchaView
-from console.views import app_upgrade
+from console.views import app_upgrade, audit_view
 from console.views.adaptor import Appstore, Appstores, AppstoreCharts, AppstoreChart, HelmRegionInstall
 from console.views.api_gateway import AppApiGatewayView, AppApiGatewayConvertView
 from console.views.app_autoscaler import (AppAutoscalerView, AppScalingRecords, ListAppAutoscalerView)
@@ -1040,6 +1040,7 @@ urlpatterns = [
     url(r'^teams/(?P<tenantName>[\w\-]+)/events$', AppEventsView.as_view()),
     url(r'^teams/(?P<tenantName>[\w\-]+)/events/(?P<eventId>[\w\-]+)/log$', AppEventsLogView.as_view()),
     url(r'^users/team_details$', UserTeamDetailsView.as_view()),
+    url(r'^audit/test$', audit_view.AuditTestView.as_view()),
 ]
 
 # 云市应用升级相关接口
