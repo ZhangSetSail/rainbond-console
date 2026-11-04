@@ -2,7 +2,7 @@
 import logging
 import os
 from functools import wraps
-from typing import Any, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, ParamSpec, Tuple, TypeVar
 
 from console.exception.bcode import ErrOauthServiceExists, ErrOauthUserNotFound, ErrOauthServiceNotFound
 from console.exception.main import ServiceHandleException
@@ -12,11 +12,13 @@ from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 
 logger = logging.getLogger('default')
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
 
 
-def oauth_name_transaction(method):
+def oauth_name_transaction(method: Callable[_P, _R]) -> Callable[_P, _R]:
     @wraps(method)
-    def wrapped(*args, **kwargs):
+    def wrapped(*args: _P.args, **kwargs: _P.kwargs) -> _R:
         try:
             with transaction.atomic():
                 return method(*args, **kwargs)
@@ -104,7 +106,10 @@ class OAuthRepo(object):
     def get_by_name(name: str, user_id: str, eid: Optional[str], system: bool = False,
                     exclude_id: Optional[int] = None, oauth_type: Optional[str] = None) -> OAuthServices:
         scope = OAuthServices.get_name_scope(eid, user_id, system, oauth_type=oauth_type)
-        return OAuthServices.objects.exclude(ID=exclude_id).get(name=name, name_scope=scope)
+        queryset = OAuthServices.objects.filter(name=name, name_scope=scope)
+        if exclude_id is not None:
+            queryset = queryset.exclude(ID=exclude_id)
+        return queryset.get()
 
     @oauth_name_transaction
     def create_or_update_oauth_services(self, values: Any, eid: Optional[str] = None,
@@ -158,7 +163,7 @@ class OAuthRepo(object):
                     if old_service is None:
                         raise ErrOauthServiceNotFound
                     try:
-                        self.get_by_name(value["name"], old_service.user_id, old_service.eid, old_service.system,
+                        self.get_by_name(value["name"], str(old_service.user_id), old_service.eid, old_service.system,
                                          exclude_id=old_service.ID, oauth_type=old_service.oauth_type)
                         raise ErrOauthServiceExists
                     except OAuthServices.DoesNotExist:
@@ -223,7 +228,7 @@ class OAuthRepo(object):
                     )
                 elif old_oauth_service is not None and value.get("service_id") == old_oauth_service.ID:
                     try:
-                        self.get_by_name(value["name"], old_oauth_service.user_id, old_oauth_service.eid,
+                        self.get_by_name(value["name"], str(old_oauth_service.user_id), old_oauth_service.eid,
                                          old_oauth_service.system, exclude_id=old_oauth_service.ID,
                                          oauth_type=old_oauth_service.oauth_type)
                         raise ErrOauthServiceExists
@@ -340,7 +345,6 @@ class UserOAuthRepo(object):
 
     def get_by_oauths_user_id(self, service_ids: Any, user_id: str) -> "QuerySet[UserOAuthServices]":
         return UserOAuthServices.objects.filter(service_id__in=service_ids, user_id=user_id)
-
 
     def get_all_user_oauth(self, user_id: str) -> "QuerySet[UserOAuthServices]":
         return UserOAuthServices.objects.filter(user_id=user_id)
